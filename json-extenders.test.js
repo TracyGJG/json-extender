@@ -1,6 +1,6 @@
 import { jsonReplacer, jsonReviver } from './json-extenders';
 
-const standardObject = [
+const serialisedObject = [
 	{
 		alpha: undefined,
 		beta: null,
@@ -17,9 +17,9 @@ const standardObject = [
 		iota: new Date('2134-05-06T07:08:09.000Z'),
 	},
 ];
-const standardString = `[
+const deserialisedString = `[
   {
-    "alpha": "undefined_undefined",
+    "alpha": "JS_TEST|undefined|undefined",
     "beta": null,
     "gamma": true
   },
@@ -30,43 +30,30 @@ const standardString = `[
   },
   {
     "eta": {},
-    "theta": "bigint_42",
-    "iota": "date_2134-05-06T07:08:09.000Z"
+    "theta": "JS_TEST|bigint|42",
+    "iota": "JS_TEST|date|2134-05-06T07:08:09.000Z"
   }
 ]`;
 
 describe('JSON Extenders', () => {
 	describe('JSON Replacer', () => {
 		test('Serialisation', () => {
-			expect(
-				JSON.stringify(
-					standardObject,
-					function (key, value) {
-						if (value === undefined) return `undefined_undefined`;
-						if (typeof this[key] === 'bigint')
-							return `bigint_${value}`;
-						if (this[key] instanceof Date)
-							return `date_${this[key].toISOString()}`;
-						return value;
-					},
-					2
-				)
-			).toBe(standardString);
+			const result = JSON.stringify(
+				serialisedObject,
+				jsonReplacer('JS_TEST'),
+				2
+			);
+			expect(result).toBe(deserialisedString);
 		});
 	});
 
 	describe('JSON Reviver', () => {
 		test('Deserialisation', () => {
-			expect(
-				JSON.parse(standardString, (key, value) => {
-					if ('undefined_undefined' === value) return undefined;
-					if (/^bigint_/.test(value))
-						return BigInt(value.replace(/^bigint_/, ''));
-					if (/^date_/.test(value))
-						return new Date(value.replace(/^date_/, ''));
-					return value;
-				})
-			).toEqual(standardObject);
+			const result = JSON.parse(
+				deserialisedString,
+				jsonReviver('JS_TEST')
+			);
+			expect(result).toEqual(serialisedObject);
 		});
 	});
 });
