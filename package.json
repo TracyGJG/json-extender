@@ -1,0 +1,30 @@
+{
+  "name": "json-extender",
+  "version": "1.0.0",
+  "description": "Utilities to extend the range of data types serialisable/deserialisable in JSON",
+  "main": "json-extender.js",
+  "scripts": {
+    "min": "jsmin -o json-extender.min.js json-extender.js",
+    "coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TracyGJG/json-extender.git"
+  },
+  "type": "module",
+  "keywords": [
+    "JSON"
+  ],
+  "author": "Tracy-Gregory Gilmore",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/TracyGJG/json-extender/issues"
+  },
+  "homepage": "https://github.com/TracyGJG/json-extender#readme",
+  "devDependencies": {
+    "jest": "^29.3.1",
+    "jsmin": "^1.0.1"
+  }
+}
