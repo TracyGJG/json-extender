@@ -15,7 +15,8 @@ function isStandardType(value) {
 export function jsonReplacer(customPrexif = DEFAULT_PREFIX, customReplacer) {
 	const serialise = (type, value) => `${customPrexif}|${type}|${value}`;
 
-	return (key, value) => {
+	return function (key, value) {
+		if (value === undefined) return serialise(undefined, value);
 		return value;
 	};
 }

@@ -1,4 +1,4 @@
-import { jsonReplacer, jsonReviver } from './json-extender';
+import { jsonReplacer, jsonReviver } from './json-extenders';
 
 const standardObject = [
 	{
@@ -35,7 +35,7 @@ const standardString = `[
   }
 ]`;
 
-describe('JSON Extender', () => {
+describe('JSON Extenders', () => {
 	describe('JSON Replacer', () => {
 		test('Serialisation', () => {
 			expect(
