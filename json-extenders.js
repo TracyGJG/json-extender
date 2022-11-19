@@ -6,10 +6,13 @@ export function jsonReplacer(customPrexif = DEFAULT_PREFIX, _customReplacer) {
 		if (value === undefined) return serialisedPattern();
 
 		if (typeof this[key] === 'bigint')
-			return serialisedPattern('bigint', serialiseBigint(this[key]));
+			return serialisedPattern('bigint', serialiseBigInt(this[key]));
 
 		if (this[key] instanceof Date)
 			return serialisedPattern('date', serialiseDate(this[key]));
+
+		if (this[key] instanceof RegExp)
+			return serialisedPattern('regexp', serialiseRegExp(this[key]));
 
 		if (this[key] instanceof Map)
 			return serialisedPattern('map', serialiseMap(this[key]));
@@ -44,6 +47,10 @@ export function jsonReviver(customPrexif = DEFAULT_PREFIX, customReviver) {
 		{
 			const { test, replace } = deserialisedPattern('date');
 			if (test(value)) return deserialiseDate(replace(value));
+		}
+		{
+			const { test, replace } = deserialisedPattern('regexp');
+			if (test(value)) return deserialiseRegExp(replace(value));
 		}
 		{
 			const { test, replace } = deserialisedPattern('map');
@@ -88,12 +95,17 @@ function extractCast(typeClass, TypeName, dataValue) {
 // 	const { test, replace } = deserialisedPattern(dataType);
 // 	if (test(value)) return deserialiser(replace(value));
 // }
-function deserialiseDate(value) {
-	return new Date(value);
-}
 function deserialiseBigint(value) {
 	return BigInt(value);
 }
+function deserialiseDate(value) {
+	return new Date(value);
+}
+function deserialiseRegExp(value) {
+	const { source, flags } = JSON.parse(value);
+	return new RegExp(source, flags);
+}
+
 function deserialiseMap(value) {
 	const newMap = new Map();
 	Object.entries(JSON.parse(value)).forEach(([key, val]) =>
@@ -109,11 +121,15 @@ function deserialiseClass(value, reviver) {
 	const deserialised = value.match(classPattern);
 	return reviver(deserialised?.groups);
 }
-function serialiseBigint(_bigint) {
+function serialiseBigInt(_bigint) {
 	return `${_bigint}`;
 }
 function serialiseDate(_date) {
 	return _date.toISOString();
+}
+function serialiseRegExp(_regexp) {
+	const { source, flags } = _regexp;
+	return JSON.stringify({ source, flags });
 }
 function serialiseMap(_map) {
 	const mapObj = {};

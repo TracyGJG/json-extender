@@ -25,6 +25,7 @@ const standardString = `[
   }
 ]`;
 
+const testRegExp = /ab+c/i;
 const testMap = new Map();
 testMap.set('alpha', true);
 testMap.set(42, 'gamma');
@@ -40,8 +41,9 @@ const extendedObject = [
 		gamma: new Date('2134-05-06T07:08:09.000Z'),
 	},
 	{
-		delta: testMap,
-		epsilon: testSet,
+		delta: testRegExp,
+		epsilon: testMap,
+		iota: testSet,
 	},
 ];
 const extendedString = `[
@@ -51,8 +53,9 @@ const extendedString = `[
     "gamma": "JS_TEST|date|2134-05-06T07:08:09.000Z"
   },
   {
-    "delta": "JS_TEST|map|{\\\"string\|alpha\\\":true,\\\"number|42\\\":\\\"gamma\\\",\\\"boolean|true\\\":42}",
-    "epsilon": "JS_TEST|set|[\\\"alpha\\\",42,true]"
+    "delta": "JS_TEST|regexp|{\\\"source\\\":\\\"ab+c\\\",\\\"flags\\\":\\\"i\\\"}",
+    "epsilon": "JS_TEST|map|{\\\"string\|alpha\\\":true,\\\"number|42\\\":\\\"gamma\\\",\\\"boolean|true\\\":42}",
+    "iota": "JS_TEST|set|[\\\"alpha\\\",42,true]"
   }
 ]`;
 
@@ -69,23 +72,30 @@ class CustomObject extends ParentObject {
 		this.msg2 = msg2;
 	}
 }
+function functionObject(value) {
+	this.val = value;
+}
 const testParentObj = new ParentObject('The answer');
 const testCustomObj1 = new CustomObject('Hello World', "Don't Panic");
+const testFunctionObj = new functionObject("Don't Panic");
 const customObject1 = [
 	{
 		alpha: testCustomObj1,
 		beta: testParentObj,
+		gamma: testFunctionObj,
 	},
 ];
 const customString = `[
   {
-    "alpha": "JS_TEST|class|CustomObject|{\\\"msg\\\":\\\"base\\\",\\\"msg1\\\":\\\"Hello World\\\"}"
+    "alpha": "JS_TEST|class|CustomObject|{\\\"msg\\\":\\\"base\\\",\\\"msg1\\\":\\\"Hello World\\\"}",
+    "gamma": "JS_TEST|class|functionObject|{\\\"val\\\":\\\"Don't Panic\\\"}"
   }
 ]`;
 const testCustomObj2 = new CustomObject('Hello World');
 const customObject2 = [
 	{
 		alpha: testCustomObj2,
+		gamma: testFunctionObj,
 	},
 ];
 
@@ -93,6 +103,8 @@ function customReplacer(val) {
 	if (val.constructor === ParentObject) return undefined;
 	if (val.constructor === CustomObject)
 		return serialiseCustom(val, 'CustomObject', ['msg', 'msg1']);
+	if (val.constructor === functionObject)
+		return serialiseCustom(val, 'functionObject', ['val']);
 	return false;
 
 	function serialiseCustom(instance, className, properties) {
@@ -101,8 +113,7 @@ function customReplacer(val) {
 				? { ...newObj, [key]: val }
 				: newObj;
 		}, {});
-		const newStr = `${className}|${JSON.stringify(newObj)}`;
-		return newStr;
+		return `${className}|${JSON.stringify(newObj)}`;
 	}
 }
 
@@ -112,6 +123,11 @@ function customReviver(customValue) {
 			const properties = JSON.parse(customValue.instance);
 			const newInstance = new CustomObject(properties.msg1);
 			newInstance.msg = properties.msg;
+			return newInstance;
+		}
+		if (customValue.className === 'functionObject') {
+			const properties = JSON.parse(customValue.instance);
+			const newInstance = new functionObject(properties.val);
 			return newInstance;
 		}
 	}
