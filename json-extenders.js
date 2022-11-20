@@ -1,7 +1,10 @@
 const DEFAULT_PREFIX = 'JSON_EXTENSION';
 
 // Serialisation
-export function jsonReplacer(customPrexif = DEFAULT_PREFIX, _customReplacer) {
+export function jsonReplacer(
+	customPrexif = DEFAULT_PREFIX,
+	_customReplacer = null
+) {
 	return function (key, value) {
 		if (value === undefined) return serialisedPattern();
 
@@ -35,7 +38,10 @@ export function jsonReplacer(customPrexif = DEFAULT_PREFIX, _customReplacer) {
 }
 
 // Deserialisation
-export function jsonReviver(customPrexif = DEFAULT_PREFIX, customReviver) {
+export function jsonReviver(
+	customPrexif = DEFAULT_PREFIX,
+	customReviver = null
+) {
 	return function (_key, value) {
 		if (`${customPrexif}|undefined|undefined` === value) return undefined;
 		if (isPrimitive(value, customPrexif)) return value;
