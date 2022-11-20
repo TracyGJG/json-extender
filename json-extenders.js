@@ -29,7 +29,6 @@ export function jsonReplacer(customPrexif = DEFAULT_PREFIX, _customReplacer) {
 		}
 		return value;
 	};
-
 	function serialisedPattern(dataType, dataValue) {
 		return `${customPrexif}|${dataType}|${dataValue}`;
 	}
@@ -80,12 +79,12 @@ export function jsonReviver(customPrexif = DEFAULT_PREFIX, customReviver) {
 
 function extractValue(dataValue) {
 	return (
-		extractCast(Boolean, 'boolean', dataValue) ||
-		extractCast(Number, 'number', dataValue) ||
-		extractCast(String, 'string', dataValue)
+		extractAndCast(Boolean, 'boolean', dataValue) ||
+		extractAndCast(Number, 'number', dataValue) ||
+		extractAndCast(String, 'string', dataValue)
 	);
 }
-function extractCast(typeClass, TypeName, dataValue) {
+function extractAndCast(typeClass, TypeName, dataValue) {
 	const regExp = new RegExp(`^${TypeName}\\\|`);
 	return regExp.test(dataValue)
 		? typeClass(dataValue.replace(regExp, ''))
