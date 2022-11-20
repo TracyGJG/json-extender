@@ -21,13 +21,12 @@ export function jsonReplacer(customPrexif = DEFAULT_PREFIX, _customReplacer) {
 			return serialisedPattern('set', serialiseSet(this[key]));
 
 		if (key && typeof this === 'object' && _customReplacer) {
-			const serialisedCustom = _customReplacer(value);
-			if (serialisedCustom === undefined) return serialisedCustom;
-			return serialisedCustom
-				? serialisedPattern('class', serialisedCustom)
-				: value;
+			return serialiseClass(
+				this[key],
+				_customReplacer,
+				serialisedPattern
+			);
 		}
-
 		return value;
 	};
 
@@ -40,6 +39,7 @@ export function jsonReplacer(customPrexif = DEFAULT_PREFIX, _customReplacer) {
 export function jsonReviver(customPrexif = DEFAULT_PREFIX, customReviver) {
 	return function (_key, value) {
 		if (`${customPrexif}|undefined|undefined` === value) return undefined;
+		if (isPrimitive(value, customPrexif)) return value;
 		{
 			const { test, replace } = deserialisedPattern('bigint');
 			if (test(value)) return deserialiseBigint(replace(value));
@@ -91,10 +91,7 @@ function extractCast(typeClass, TypeName, dataValue) {
 		? typeClass(dataValue.replace(regExp, ''))
 		: '';
 }
-// function deserialise(dataType, deserialiser) {
-// 	const { test, replace } = deserialisedPattern(dataType);
-// 	if (test(value)) return deserialiser(replace(value));
-// }
+
 function deserialiseBigint(value) {
 	return BigInt(value);
 }
@@ -105,7 +102,6 @@ function deserialiseRegExp(value) {
 	const { source, flags } = JSON.parse(value);
 	return new RegExp(source, flags);
 }
-
 function deserialiseMap(value) {
 	const newMap = new Map();
 	Object.entries(JSON.parse(value)).forEach(([key, val]) =>
@@ -121,6 +117,7 @@ function deserialiseClass(value, reviver) {
 	const deserialised = value.match(classPattern);
 	return reviver(deserialised?.groups);
 }
+
 function serialiseBigInt(_bigint) {
 	return `${_bigint}`;
 }
@@ -140,4 +137,19 @@ function serialiseSet(_set) {
 	const setArr = [];
 	_set.forEach(value => setArr.push(value));
 	return JSON.stringify(setArr);
+}
+function serialiseClass(_class, _replacer, _serialisedPattern) {
+	const serialisedCustom = _replacer(_class);
+	if (serialisedCustom === undefined) return serialisedCustom;
+	return serialisedCustom
+		? _serialisedPattern('class', serialisedCustom)
+		: _class;
+}
+
+function isPrimitive(value, customPrexif) {
+	return (
+		(value === null ||
+			['boolean', 'number', 'string'].includes(typeof value)) &&
+		!new RegExp(`^${customPrexif}|`).test(`${value}`)
+	);
 }
